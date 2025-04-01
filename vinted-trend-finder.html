@@ -1,0 +1,50 @@
+<!-- Vinted Trend Finder - 100% Frontend HTML version -->
+<!-- Pas besoin d'installation, tu peux juste ouvrir ce fichier dans ton navigateur -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bot Vinted Tendances</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 700px; margin: auto; }
+    input, button { margin: 5px; padding: 10px; }
+    li { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>🔎 Vinted Trend Finder</h1>
+  <p>Ce bot repère les articles tendances les moins chers ajoutés récemment sur Vinted.<br>Aucune installation requise !</p>
+
+  <input type="text" id="search" placeholder="Ex: nike tn, salomon...">
+  <input type="number" id="maxPrice" placeholder="Prix max" value="50">
+  <button onclick="search()">Rechercher</button>
+  <ul id="results"></ul>
+
+  <script>
+    async function search() {
+      const query = document.getElementById('search').value;
+      const maxPrice = document.getElementById('maxPrice').value;
+      const url = `https://www.vinted.fr/vetements?search_text=${encodeURIComponent(query)}&price_to=${maxPrice}`;
+      const proxy = `https://corsproxy.io/?` + encodeURIComponent(url);
+
+      const res = await fetch(proxy);
+      const html = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const items = doc.querySelectorAll("div.feed-grid__item");
+      const results = document.getElementById("results");
+      results.innerHTML = '';
+
+      items.forEach((item, i) => {
+        if (i >= 10) return; // Limite à 10 résultats
+        const title = item.querySelector("h3")?.innerText || "Sans titre";
+        const price = item.querySelector(".price")?.innerText || "--€";
+        const link = item.querySelector("a")?.getAttribute("href") || "";
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="https://www.vinted.fr${link}" target="_blank">${title}</a> - ${price}`;
+        results.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
